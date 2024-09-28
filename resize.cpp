@@ -24,7 +24,9 @@
 #include <algorithm>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -784,6 +786,7 @@ class CustomZimgFilter : public Filter {
     const VSAPI *vsapi;
 
     mutable std::unordered_map<unsigned long long, double> cache;
+    mutable std::shared_mutex cache_mutex;
 
 public:
     CustomZimgFilter(unsigned taps, VSFunction *func, const VSAPI *vsapi) : taps(taps), func(func), vsapi(vsapi), cache{} {}
@@ -795,10 +798,13 @@ public:
     unsigned support() const override { return taps; };
 
     double operator()(double x) const override {
-        auto it = cache.find((unsigned long long&)x);
+        {
+            std::shared_lock<std::shared_mutex> lock(cache_mutex);
+            auto it = cache.find((unsigned long long&)x);
 
-        if (it != cache.end())
-            return it->second;
+            if (it != cache.end())
+                return it->second;
+        }
 
         VSMap *_map = vsapi->createMap();
         int _err;
@@ -819,7 +825,10 @@ public:
                 "Running custom_kernel(" + std::to_string(x) + ") returned error(" + std::to_string(_err) + ") for invalid value: " + std::to_string(value)
             };
 
-        cache[(unsigned long long&)x] = value;
+        {
+            std::lock_guard<std::shared_mutex> lock(cache_mutex);
+            cache[(unsigned long long&)x] = value;
+        }
 
         return value;
     };
