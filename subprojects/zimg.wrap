@@ -1,0 +1,9 @@
+[wrap-git]
+url = https://bitbucket.org/the-sekrit-twc/zimg.git
+revision = head
+patch_directory = zimg
+diff_files = zimg/0001.patch
+clone-recursive = true
+
+[provide]
+zimg_patched = zimg_patched_dep

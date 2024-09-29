@@ -23,19 +23,12 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Clone VapourSynth and Zimg
-      shell: 'pwsh'
-      run: |
-        git clone --recurse-submodules --remote-submodules https://github.com/vapoursynth/vapoursynth.git
-        git clone --recurse-submodules --remote-submodules https://bitbucket.org/the-sekrit-twc/zimg.git
-        Copy-Item zimg.patch ./zimg
-        git -C zimg apply zimg.patch
-
     - uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
         update: true
         pacboy: >-
+          git:
           cmake:p
           meson:p
           gcc:p
