@@ -163,7 +163,6 @@ if opt_ARMSIMD
         'src/zimg/depth/arm/depth_convert_arm.h',
         'src/zimg/depth/arm/dither_arm.cpp',
         'src/zimg/depth/arm/dither_arm.h',
-        'src/zimg/depth/arm/f16c_arm.h',
         'src/zimg/resize/arm/resize_impl_arm.cpp',
         'src/zimg/resize/arm/resize_impl_arm.h'
     ]
@@ -179,7 +178,6 @@ if opt_ARMSIMD
             'src/zimg/colorspace/arm/operation_impl_neon.cpp',
             'src/zimg/depth/arm/depth_convert_neon.cpp',
             'src/zimg/depth/arm/dither_neon.cpp',
-            'src/zimg/depth/arm/f16c_neon.cpp',
             'src/zimg/resize/arm/resize_impl_neon.cpp'
         ],
         c_args: compile_args + NEON_CFLAGS,
@@ -194,13 +192,10 @@ if opt_X86SIMD
         'src/zimg/colorspace/x86/operation_impl_x86.cpp',
         'src/zimg/colorspace/x86/operation_impl_x86.h',
 
-        'src/zimg/common/x86/avx_util.h',
         'src/zimg/common/x86/avx2_util.h',
         'src/zimg/common/x86/avx512_util.h',
         'src/zimg/common/x86/cpuinfo_x86.cpp',
         'src/zimg/common/x86/cpuinfo_x86.h',
-        'src/zimg/common/x86/sse_util.h',
-        'src/zimg/common/x86/sse2_util.h',
         'src/zimg/common/x86/x86util.cpp',
         'src/zimg/common/x86/x86util.h',
 
@@ -208,7 +203,6 @@ if opt_X86SIMD
         'src/zimg/depth/x86/depth_convert_x86.h',
         'src/zimg/depth/x86/dither_x86.cpp',
         'src/zimg/depth/x86/dither_x86.h',
-        'src/zimg/depth/x86/f16c_x86.h',
 
         'src/zimg/resize/x86/resize_impl_x86.cpp',
         'src/zimg/resize/x86/resize_impl_x86.h',
@@ -216,67 +210,15 @@ if opt_X86SIMD
         'src/zimg/unresize/x86/unresize_impl_x86.h'
     ]
 
-    link_libs += static_library(
-        'sse',
-        [
-            'src/zimg/colorspace/x86/operation_impl_sse.cpp',
-            'src/zimg/resize/x86/resize_impl_sse.cpp',
-            'src/zimg/unresize/x86/unresize_impl_sse.cpp',
-        ],
-        c_args: compile_args + ['-msse'],
-        cpp_args: compile_args + ['-msse'],
-        gnu_symbol_visibility: 'hidden',
-        include_directories: incl_dirs
-    )
-
-    link_libs += static_library(
-        'sse2',
-        [
-            'src/zimg/colorspace/x86/operation_impl_sse2.cpp',
-            'src/zimg/depth/x86/depth_convert_sse2.cpp',
-            'src/zimg/depth/x86/dither_sse2.cpp',
-            'src/zimg/depth/x86/error_diffusion_sse2.cpp',
-            'src/zimg/depth/x86/f16c_sse2.cpp',
-            'src/zimg/resize/x86/resize_impl_sse2.cpp',
-        ],
-        c_args: compile_args + ['-msse2'],
-        cpp_args: compile_args + ['-msse2'],
-        gnu_symbol_visibility: 'hidden',
-        include_directories: incl_dirs
-    )
-
     SNB_CFLAGS = []
     if cxx.has_argument('-mtune=sandybridge')
         SNB_CFLAGS += ['-mtune=sandybridge']
     endif
 
-    link_libs += static_library(
-        'avx',
-        [
-            'src/zimg/colorspace/x86/operation_impl_avx.cpp',
-            'src/zimg/resize/x86/resize_impl_avx.cpp',
-        ],
-        c_args: compile_args + ['-mavx'] + SNB_CFLAGS,
-        cpp_args: compile_args + ['-mavx'] + SNB_CFLAGS,
-        gnu_symbol_visibility: 'hidden',
-        include_directories: incl_dirs
-    )
-
     IVB_CFLAGS = []
     if cxx.has_argument('-mtune=ivybridge')
         IVB_CFLAGS += ['-mtune=ivybridge']
     endif
-
-    link_libs += static_library(
-        'f16c',
-        [
-            'src/zimg/depth/x86/f16c_ivb.cpp',
-        ],
-        c_args: compile_args + ['-mavx', '-mf16c'] + IVB_CFLAGS,
-        cpp_args: compile_args + ['-mavx', '-mf16c'] + IVB_CFLAGS,
-        gnu_symbol_visibility: 'hidden',
-        include_directories: incl_dirs
-    )
 
     HSW_CFLAGS = []
     if cxx.has_argument('-mtune=haswell')
@@ -290,7 +232,8 @@ if opt_X86SIMD
             'src/zimg/depth/x86/depth_convert_avx2.cpp',
             'src/zimg/depth/x86/dither_avx2.cpp',
             'src/zimg/depth/x86/error_diffusion_avx2.cpp',
-            'src/zimg/resize/x86/resize_impl_avx2.cpp'
+            'src/zimg/resize/x86/resize_impl_avx2.cpp',
+            'src/zimg/unresize/x86/unresize_impl_avx2.cpp'
         ],
         c_args: compile_args + ['-mavx2', '-mf16c', '-mfma'] + HSW_CFLAGS,
         cpp_args: compile_args + ['-mavx2', '-mf16c', '-mfma'] + HSW_CFLAGS,

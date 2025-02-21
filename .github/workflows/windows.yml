@@ -2,11 +2,9 @@ name: Build (Windows / MSYS2)
 
 on:
   push:
-    paths:
-      - 'resize.cpp'
-      - 'meson.build'
-      - 'meson_options.txt'
-      - '.github/workflows/windows.yml'
+    branches: [master]
+    tags: ["*"]
+  pull_request:
   workflow_dispatch:
 
 jobs:
