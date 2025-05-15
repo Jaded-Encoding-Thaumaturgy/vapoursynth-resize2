@@ -1469,6 +1469,14 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI
         COMMON_ARGS
         COMMON_OTHER_ARGS;
 
+    static const char BOB_ARGS[] =
+        "clip:vnode;"
+        "filter:data:opt;"
+        "tff:int:opt;"
+        COMMON_ARGS
+        COMMON_FILTER_ARGS
+        COMMON_OTHER_ARGS;
+
     static const char RETURN_VALUE[] = "clip:vnode;";
 
     vspapi->registerFunction("Bilinear", RESAMPLE_ARGS, RETURN_VALUE, &vszimg::create, vszimg_userdata(ZIMG_RESIZE_BILINEAR), plugin);
@@ -1481,7 +1489,7 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI
 
     vspapi->registerFunction("Custom", RESAMPLE_CUSTOM_ARGS, RETURN_VALUE, &vszimg::create, vszimg_userdata(ZIMG_RESIZE_BICUBIC, true), plugin);
 
-    vspapi->registerFunction("Bob", "clip:vnode;filter:data:opt;tff:int:opt;" COMMON_ARGS, RETURN_VALUE, bobCreate, vszimg_userdata(ZIMG_RESIZE_BICUBIC), plugin);
+    vspapi->registerFunction("Bob", BOB_ARGS, RETURN_VALUE, bobCreate, vszimg_userdata(ZIMG_RESIZE_BICUBIC), plugin);
 
 #undef COMMON_ARGS
 #undef COMMON_FILTER_ARGS
