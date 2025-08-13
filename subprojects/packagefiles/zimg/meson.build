@@ -7,7 +7,7 @@ project('zimg', 'cpp',
 cxx = meson.get_compiler('cpp')
 
 compile_args = [
-    '-Wno-unused-parameter', '-Wno-missing-field-initializers', '-Wno-format', '-Wno-endif-labels',
+    '-Wno-unused-parameter', '-Wno-missing-field-initializers', '-Wformat=2', '-Wno-endif-labels',
     '-lstdc++', '-fvisibility=hidden', '-DGRAPHENGINE_IMPL_NAMESPACE=zimg'
 ]
 
