@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ["*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build os=windows-latest
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: mingw64
+        update: true
+        pacboy: >-
+          git:
+          cmake:p
+          meson:p
+          gcc:p
+          vapoursynth:p
+
+    - name: Configure and build
+      run: |
+        meson setup builddir --buildtype release
+        meson compile -C builddir
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: resize2-win64
+        path: builddir/libresize2.dll
+
+    - name: Dump Meson Debug Info
+      if: failure()
+      run: cat builddir/meson-logs/meson-log.txt\
+
+  build-unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    name: Build os=${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+
+    - name: Install Nix
+      uses: cachix/install-nix-action@v31.5.2
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - name: Set up Nix cache
+      uses: cachix/cachix-action@v16
+      with:
+        name: vs-nix-overlay
+
+    - name: Configure and build
+      run: |
+        sed -i "s|link_args: \['-static'],|#link_args: \['-static'],|" meson.build
+        nix develop -c meson setup builddir --buildtype release
+        nix develop -c meson compile -C builddir
+
+    - name: Dump Meson Debug Info
+      if: failure()
+      run: cat builddir/meson-logs/meson-log.txt
