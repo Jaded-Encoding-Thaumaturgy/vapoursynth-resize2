@@ -1,4 +1,4 @@
 ```bash
-meson setup build
+meson setup -Dlink-static=true build
 meson compile -C build
 ```

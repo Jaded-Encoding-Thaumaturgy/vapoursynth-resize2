@@ -35,7 +35,7 @@ jobs:
 
     - name: Configure and build
       run: |
-        meson setup builddir --buildtype release
+        meson setup builddir --buildtype release -Dlink-static=true
         meson compile -C builddir
 
     - name: Upload
@@ -71,7 +71,6 @@ jobs:
 
     - name: Configure and build
       run: |
-        sed -i "s|link_args: \['-static'],|#link_args: \['-static'],|" meson.build
         nix develop -c meson setup builddir --buildtype release
         nix develop -c meson compile -C builddir
 

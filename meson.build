@@ -17,7 +17,7 @@ deps = [
 
 shared_module('resize2', sources,
     dependencies: deps,
-    link_args: ['-static'],
+    link_args: get_option('link-static') ? ['-static'] : [],
     install : true,
     install_dir : join_paths(vapoursynth_dep.get_variable(pkgconfig: 'libdir'), 'vapoursynth'),
     gnu_symbol_visibility : 'hidden',
