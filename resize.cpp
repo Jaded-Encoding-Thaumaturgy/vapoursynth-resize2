@@ -904,7 +904,7 @@ class vszimg {
             graph_params.dither_type = params.dither_type;
             graph_params.cpu = params.cpu_type;
             graph_params.peak_luminance = params.nominal_peak_luminance;
-            graph_params.approximate_gamma = true;
+            graph_params.approximate_gamma = params.allow_approximate_gamma;
 
             _graph = builder.set_source(src_state).connect(dst_state, &graph_params).build_graph().release();
 
