@@ -1063,8 +1063,9 @@ class vszimg {
             }
 
             double blur = propGetScalarDef<double>(in, "blur", 1.0, vsapi);
+            double blur_uv = propGetScalarDef<double>(in, "blur_uv", blur, vsapi);
             for (int i = 0; i < 2; i++) {
-                filters[i] = std::make_unique<BlurFilter>(std::move(filters[i]), blur);
+                filters[i] = std::make_unique<BlurFilter>(std::move(filters[i]), i == 0 ? blur : blur_uv);
             }
 
             lookup_enum_str_opt(in, "dither_type", g_dither_type_table, h_dither_type_table, &m_params.dither_type, vsapi);
@@ -1451,6 +1452,7 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI
   INT_OPT(force_h) \
   INT_OPT(force_v) \
   FLOAT_OPT(blur) \
+  FLOAT_OPT(blur_uv) \
 
     static const char RESAMPLE_ARGS[] =
         "clip:vnode;"
