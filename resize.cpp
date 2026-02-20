@@ -385,6 +385,7 @@ typedef struct filter_graph_builder_params {
     DitherType dither_type;
     CPUClass cpu_type;
     GraphBuilder::force_state force;
+    GraphBuilder::force_state force_uv;
 
     double nominal_peak_luminance;
 
@@ -545,6 +546,7 @@ void import_graph_state_common(const vsrz_image_format &src, GraphBuilder::state
     out->active_height = std::isnan(src.active_region.height) ? src.height : src.active_region.height;
 
     out->force = params.force;
+    out->force_uv = params.force_uv;
 }
 
 
@@ -1080,12 +1082,21 @@ class vszimg {
             m_src_height = propGetScalarDef<double>(in, "src_height", NAN, vsapi);
             m_params.nominal_peak_luminance = propGetScalarDef<double>(in, "nominal_luminance", NAN, vsapi);
 
-            if (vsapi->mapGetInt(in, "force", 0, &err)) {
+            if (propGetScalarDef<unsigned>(in, "force", 0, vsapi)) {
                 m_params.force.force_h = true;
                 m_params.force.force_v = true;
             } else {
-                m_params.force.force_h = !!vsapi->mapGetInt(in, "force_h", 0, &err);
-                m_params.force.force_v = !!vsapi->mapGetInt(in, "force_v", 0, &err);
+                m_params.force.force_h = !!propGetScalarDef<unsigned>(in, "force_h", 0, vsapi);
+                m_params.force.force_v = !!propGetScalarDef<unsigned>(in, "force_v", 0, vsapi);
+            }
+
+            int force_uv = vsapi->mapGetInt(in, "force_uv", 0, &err);
+            if (!err) {
+                m_params.force_uv.force_h = !!force_uv;
+                m_params.force_uv.force_v = !!force_uv;
+            } else {
+                m_params.force_uv.force_h = !!propGetScalarDef<unsigned>(in, "force_h_uv", m_params.force.force_h, vsapi);
+                m_params.force_uv.force_v = !!propGetScalarDef<unsigned>(in, "force_v_uv", m_params.force.force_v, vsapi);
             }
 
             // Basic compatibility check.
@@ -1207,7 +1218,7 @@ class vszimg {
                 dst_format.field_parity = GraphBuilder::FieldParity::PROGRESSIVE;
             }
 
-            if (!m_params.force && src_format == dst_format && isSameVideoFormat(src_vsformat, dst_vsformat) && !is_shifted(src_format)) {
+            if (!m_params.force && !m_params.force_uv && src_format == dst_format && isSameVideoFormat(src_vsformat, dst_vsformat) && !is_shifted(src_format)) {
                 VSFrame *clone = vsapi->copyFrame(src_frame, core);
                 export_frame_props(dst_format, vsapi->getFramePropertiesRW(clone), vsapi);
                 return clone;
@@ -1451,6 +1462,9 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin *plugin, const VSPLUGINAPI
   INT_OPT(force) \
   INT_OPT(force_h) \
   INT_OPT(force_v) \
+  INT_OPT(force_uv) \
+  INT_OPT(force_h_uv) \
+  INT_OPT(force_v_uv) \
   FLOAT_OPT(blur) \
   FLOAT_OPT(blur_uv) \
 

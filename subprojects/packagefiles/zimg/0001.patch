@@ -2,20 +2,21 @@ diff --git a/src/zimg/graph/graphbuilder.cpp b/src/zimg/graph/graphbuilder.cpp
 index ccb757b..3b4383e 100644
 --- a/src/zimg/graph/graphbuilder.cpp
 +++ b/src/zimg/graph/graphbuilder.cpp
-@@ -327,6 +327,7 @@ struct GraphBuilder::internal_state {
+@@ -327,6 +327,8 @@ struct GraphBuilder::internal_state {
  	ColorFamily color;
  	colorspace::ColorspaceDefinition colorspace;
  	AlphaType alpha;
 +	force_state force;
++	force_state force_uv;
  private:
  	void chroma_from_luma(unsigned subsample_w, unsigned subsample_h)
  	{
-@@ -365,13 +366,14 @@ private:
+@@ -365,13 +367,15 @@ private:
  			planes[PLANE_A].active_top -= luma_parity_offset(parity);
  	}
  public:
 -	internal_state() : planes{}, color{}, colorspace{}, alpha{} {}
-+	internal_state() : planes{}, color{}, colorspace{}, alpha{}, force{} {}
++	internal_state() : planes{}, color{}, colorspace{}, alpha{}, force{}, force_uv{} {}
  
  	explicit internal_state(const state &state) :
  		planes{},
@@ -23,62 +24,63 @@ index ccb757b..3b4383e 100644
  		colorspace(state.colorspace),
 -		alpha{ state.alpha }
 +		alpha{ state.alpha },
-+		force(state.force)
++		force(state.force),
++		force_uv(state.force_uv)
  	{
  		planes[PLANE_Y].width = state.width;
  		planes[PLANE_Y].height = state.height;
-@@ -419,7 +421,8 @@ public:
+@@ -419,7 +423,8 @@ public:
  			lhs.planes[PLANE_Y] == rhs.planes[PLANE_Y] &&
  			(!lhs.has_chroma() || lhs.planes[PLANE_U] == rhs.planes[PLANE_U]) &&
  			(!lhs.has_chroma() || lhs.planes[PLANE_V] == rhs.planes[PLANE_V]) &&
 -			(!lhs.has_alpha() || lhs.planes[PLANE_A] == rhs.planes[PLANE_A]);
 +			(!lhs.has_alpha() || lhs.planes[PLANE_A] == rhs.planes[PLANE_A]) &&
-+			lhs.force == rhs.force;
++			lhs.force == rhs.force && lhs.force_uv == rhs.force_uv;
  	}
  
  	friend bool operator!=(const internal_state &lhs, const internal_state &rhs)
-@@ -526,6 +529,8 @@ private:
+@@ -526,6 +531,8 @@ private:
  
  	bool needs_interpolation(const internal_state &target)
  	{
-+		if (target.force)
++		if (target.force || target.force_uv)
 +			return true;
  		if (needs_interpolation_plane(target, PLANE_Y))
  			return true;
  		if (m_state.has_chroma() && target.has_chroma() && needs_interpolation_plane(target, PLANE_U))
-@@ -539,6 +544,8 @@ private:
+@@ -539,6 +546,8 @@ private:
  
  	bool can_copy_tile(const internal_state &target, int p)
  	{
-+        if (target.force)
++        if (p == PLANE_Y ? target.force : target.force_uv)
 +            return false;
  		auto is_integer = [](double x) { return std::trunc(x) == x; };
  
  		const internal_state::plane &src_plane = m_state.planes[p];
-@@ -574,6 +581,8 @@ private:
+@@ -574,6 +583,8 @@ private:
  
  	bool needs_resize_plane(const internal_state &target, int p)
  	{
-+		if (target.force)
++		if (p == PLANE_Y ? target.force : target.force_uv)
 +			return true;
  		internal_state::plane plane = target.planes[p];
  		plane.format = m_state.planes[p].format;
  		return m_state.planes[p] != plane;
-@@ -581,6 +590,8 @@ private:
+@@ -581,6 +592,8 @@ private:
  
  	bool needs_resize(const internal_state &target)
  	{
-+		if (target.force)
++		if (target.force || target.force_uv)
 +			return true;
  		if (needs_resize_plane(target, PLANE_Y))
  			return true;
  		if (m_state.has_chroma() && target.has_chroma() && needs_resize_plane(target, PLANE_U))
-@@ -801,6 +812,8 @@ private:
+@@ -801,6 +814,8 @@ private:
  				.set_shift_h(shift_h)
  				.set_subwidth(subwidth)
  				.set_subheight(subheight)
-+				.set_force_h(target.force.force_h)
-+				.set_force_v(target.force.force_v)
++				.set_force_h(p == PLANE_U || p == PLANE_V ? target.force_uv.force_h : target.force.force_h)
++				.set_force_v(p == PLANE_U || p == PLANE_V ? target.force_uv.force_v : target.force.force_v)
  				.set_cpu(params.cpu);
  
  			observer.resize(conv, p);
@@ -113,12 +115,13 @@ index 7bafac3..7f72628 100644
  	// Canonical state.
  	struct state {
  		unsigned width;
-@@ -128,6 +148,8 @@ public:
+@@ -128,6 +148,9 @@ public:
  		double active_height;
  
  		AlphaType alpha;
 +
 +		force_state force;
++		force_state force_uv;
  	};
  
  	// Filter instantiation parameters.
