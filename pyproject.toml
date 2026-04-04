@@ -1,0 +1,16 @@
+[project]
+name = "vapoursynth-resize2"
+description = "resize2 plugin for VapourSynth with blur support"
+readme = "ReadMe.md"
+license = "LGPL-2.1"
+license-files = ["LICENSE.md"]
+requires-python = ">=3.12"
+dependencies = ["vapoursynth>=74rc2"]
+dynamic = ["version"]
+
+[build-system]
+requires = ["meson-python==0.19.0", "ninja==1.13.0", "vapoursynth>=74rc2"]
+build-backend = "mesonpy"
+
+[tool.meson-python]
+allow-windows-internal-shared-libs = true

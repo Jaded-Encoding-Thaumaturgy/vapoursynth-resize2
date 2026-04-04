@@ -25,11 +25,18 @@
               meson
               ninja
               pkg-config
+              python312
+              uv
             ];
 
             buildInputs = with pkgs; [
               vapoursynth
             ];
+
+            env = {
+              UV_PYTHON_DOWNLOADS = "never";
+              UV_PYTHON_PREFERENCE = "only-system";
+            };
           };
 
           ffmpeg = pkgs.mkShell {
