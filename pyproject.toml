@@ -24,3 +24,7 @@ skip = "*-win32 *-manylinux_i686 *-musllinux_i686"
 [tool.cibuildwheel.windows]
 # https://cibuildwheel.pypa.io/en/stable/faq/#building-with-meson-python-on-windows
 config-settings = { "setup-args" = "--vsenv" }
+
+[tool.cibuildwheel.macos.environment]  
+# VapourSynth's minimum macOS target is 13.0.  
+MACOSX_DEPLOYMENT_TARGET = "13.0"  
