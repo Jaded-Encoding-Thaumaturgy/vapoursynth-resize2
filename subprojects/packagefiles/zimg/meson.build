@@ -154,6 +154,7 @@ if opt_ARMSIMD
             'src/zimg/colorspace/arm/operation_impl_neon.cpp',
             'src/zimg/depth/arm/depth_convert_neon.cpp',
             'src/zimg/depth/arm/dither_neon.cpp',
+            'src/zimg/depth/arm/error_diffusion_neon.cpp',
             'src/zimg/resize/arm/resize_impl_neon.cpp'
         ],
         c_args: compile_args + NEON_CFLAGS,
